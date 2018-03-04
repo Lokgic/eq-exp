@@ -3,7 +3,7 @@ import {interval} from 'd3-timer'
 import { easeSin as easeFn } from 'd3-ease';
 import Animate from 'react-move/Animate';
 import {axisRight} from 'd3-axis'
-import {scaleLinear} from 'd3-scale'
+
 export default class Bar extends Component{
 	constructor(props){
     super(props)
@@ -35,29 +35,22 @@ export default class Bar extends Component{
 		});
 		if (dynamic){
       this.t = interval(()=>{
+
         const nextStep = this.state.step >= this.chain.length? 0:this.state.step+1;
+
         this.setState({step:nextStep});
       },this.state.t)
     }
 	}
   componentDidMount(prevProps, prevState){
-		const yScale = scaleLinear()
-						.domain([0,1])
-						.range([this.state.h,0]);
-		const yAxis = axisRight(yScale)
-					.tickSize(250)
-					.tickFormat(d=>d);
-	yAxis(this.g)
-	// const styledYAxis = (g)=>{
-	// 	g.call(yAxis)
-	// 	g.select(".domain").remove();
-	// 	g.selectAll(".tick:not(:first-of-type) line").attr("stroke", "#777").attr("stroke-dasharray", "2,2");
-	// 	g.selectAll(".tick text").attr("x", 4).attr("dy", -4);
-	// 				}
-	// 	styledYAxis(this.g)
+
+
+
     if (this.state.dynamic){
       this.t = interval(()=>{
+
         const nextStep = this.state.step >= this.chain.length? 0:this.state.step+1;
+				console.log(nextStep)
         this.setState({step:nextStep});
       },this.state.t)
     }
@@ -82,7 +75,7 @@ export default class Bar extends Component{
               x={0}
               y={h-p}
               /> */}
-				<g id="axis" ref={g=>this.g=g} />
+
         <Animate
           show
           start={{

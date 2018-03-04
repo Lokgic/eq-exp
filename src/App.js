@@ -4,8 +4,8 @@ import './App.css';
 import Chains from './chains.json'
 import Bar from './components/Bar'
 import DropdownMenu from './components/DropdownMenu'
-
-
+import {scaleLinear} from 'd3-scale'
+import styled from 'styled-components';
 
 const sdOptions = [
   {value:0.025},{value:0.05},{value:0.1}
@@ -14,6 +14,14 @@ const sdOptions = [
 const muOptions = [
 {value:0.2},{value:0.3},{value:0.4},{value:0.5},{value:0.6},{value:0.7},{value:0.8}
 ]
+
+
+const Tick = styled.line`
+  stroke:black;
+  stroke-width:1;
+  stroke-dasharray:5, 5;
+  opacity: 0.8;
+`
 
 
 class App extends Component {
@@ -84,15 +92,20 @@ class App extends Component {
   render() {
     const {sd,mu,dynamic,error} = this.state
     const chains = this.getCol({sd,mu})
+    const margin = {y:30,x:150}
+    const dim = {h:450,w:80}
+    const tickScale = scaleLinear()
+            .domain([0,10])
+            .range([dim.h+margin.y, margin.y]);
     return (
       <div className="App">
-        <svg width = {800} height = {500}>
+        <svg width = {800} height = {600}>
                 <Bar
-                h={450}
-                w={80}
+                h={dim.h}
+                w={dim.w}
                 color="RoyalBlue"
-                x={150}
-                y={10}
+                x={margin.x}
+                y={margin.y}
                 label="test"
                 sd={sd}
                 chain={chains}
@@ -101,6 +114,28 @@ class App extends Component {
                 error={error}
                 t={150}
               />
+          <g>
+            {
+              [...Array(11).keys()].map(d=>(
+                <g>
+                  <Tick
+                    x1={margin.x-35}
+                    x2={margin.x+dim.w}
+                    y1={tickScale(d)}
+                    y2={tickScale(d)}
+                  />
+                  <text
+                    x={margin.x-35}
+                    y={tickScale(d)}
+                    fontSize={10}
+                    >
+                    {d*10+"%"}
+                  </text>
+                </g>
+                ))
+            }
+
+          </g>
         </svg>
         <form>
           <label>
