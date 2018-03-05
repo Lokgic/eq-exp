@@ -3,45 +3,117 @@ import logo from './logo.svg';
 import './App.css';
 import Chains from './chains.json'
 import Bar from './components/Bar'
-import DropdownMenu from './components/DropdownMenu'
-import {scaleLinear} from 'd3-scale'
+// import DropdownMenu from './components/DropdownMenu'
 import styled from 'styled-components';
+import Axis from './components/Axis'
+import {random,sample} from 'lodash'
+import Settings from './components/Settings'
+import Card, { CardActions, CardContent, CardMedia } from 'material-ui/Card';
+import Typography from 'material-ui/Typography';
 
-const sdOptions = [
-  {value:0.025},{value:0.05},{value:0.1}
-]
+const options = {
+  sd:[
+    0.025,0.05,0.1
+  ],
+  mu:[
+  0.2,0.3,0.4,0.5,0.6,0.7,0.8
+  ]
 
-const muOptions = [
-{value:0.2},{value:0.3},{value:0.4},{value:0.5},{value:0.6},{value:0.7},{value:0.8}
-]
+}
 
-
-const Tick = styled.line`
-  stroke:black;
-  stroke-width:1;
-  stroke-dasharray:5, 5;
-  opacity: 0.8;
+const Button = styled.rect`
+  fill:LightSteelBlue;
+  stroke:grey;
+  stroke-width:3;
+  cursor:pointer;
+  &:hover{
+    stroke:black;
+    fill:navy;
+  }
+  rx:5;
+  ry:5;
 `
-
 
 class App extends Component {
   constructor(props){
     super(props)
+
+    this.nextMode = this.nextMode.bind(this);
+    this.getCol = this.getCol.bind(this);
+    this.handleDropdown = this.handleDropdown.bind(this);
+    this.handleNext = this.handleNext.bind(this);
+    this.randomNewParm = this.randomNewParm.bind(this);
+    this.handleSettings = this.handleSettings.bind(this)
+
     this.state = {
-      dynamic:true,
-      error:true,
-      sd:0.1,
-      mu:0.5,
+      dynamic:false,
+      error:false,
+      mode:0,
+      ...this.randomNewParm()
     }
-    this.getCol = this.getCol.bind(this)
-    this.handleDropdown = this.handleDropdown.bind(this)
 
   }
-  handleDropdown(event){
+  handleNext(){
 
+    let next = this.nextMode();
+    // if (next.mode===0) next = {
+    //   ...next,
+    //   ...this.randomNewParm()
+    // }
+    this.setState(next);
+  }
+  handleDropdown(event){
+    const val = event.target.id.split("_")
+    const parmType = val[0]
+    const dist = {0:"left",1:"right"}[val[1]]
     this.setState({
-      [event.target.id]:event.target.value
+      [dist]:{...this.state[dist],[parmType]:event.target.value}
     })
+  }
+  handleSettings(props){
+    const {dist,p,direction} = props
+    const currentIndex = options[p].indexOf(this.state[dist][p]);
+    const nextIndex = direction==="plus"? Math.min(options[p].length-1,currentIndex+1):Math.max(0,currentIndex-1);
+    let newS = {
+      [dist]:{
+        ...this.state[dist],
+        [p]:options[p][nextIndex]
+      }
+    }
+    newS[dist].chain = this.getCol({sd:newS[dist].sd,mu:newS[dist].mu})
+
+    this.setState(newS)
+  }
+  randomNewParm(){
+
+    let left =     {sd:sample(options.sd),mu:sample(options.mu)}
+    let right =     {sd:sample(options.sd),mu:sample(options.mu)}
+    left.chain = this.getCol({sd:left.sd,mu:left.mu})
+    right.chain = this.getCol({sd:right.sd,mu:right.mu})
+    return {left,right}
+  }
+  nextMode(){
+    const modes = [
+      {
+        mode:0,
+        error:false,
+        dynamic:false,
+      },
+      {
+        mode:1,
+        error:true,
+        dynamic:false,
+      },
+      {
+        mode:2,
+        error:false,
+        dynamic:true,
+      }
+    ];
+    const i  = this.state.mode===2?0: this.state.mode +1;
+    return modes[i]
+
+
   }
   getCol({mu,sd}){
     let m2,sd2
@@ -90,92 +162,84 @@ class App extends Component {
   }
 
   render() {
-    const {sd,mu,dynamic,error} = this.state
-    const chains = this.getCol({sd,mu})
+    const {left,right,dynamic,error} = this.state
     const margin = {y:30,x:150}
-    const dim = {h:450,w:80}
-    const tickScale = scaleLinear()
-            .domain([0,10])
-            .range([dim.h+margin.y, margin.y]);
+    const dim = {h:450,w:200}
+    const svgDim = {h:600,w:800}
+    // const tickScale = scaleLinear()
+    //         .domain([0,100])
+    //         .range([dim.h+margin.y, margin.y]);
     return (
-      <div className="App">
-        <svg width = {800} height = {600}>
-                <Bar
+      <div className="App" style={{display:"flex", "justifyContent":"center",height:'100vh',width:"100%","alignItems":"center"}}>
+        <div >
+          <Settings
+            left={{sd:left.sd,mu:left.mu}}
+            right={{sd:right.sd,mu:right.mu}}
+            handleSettings={this.handleSettings}
+          />
+        </div>
+        <Card style={{maxWidth:1000}}>
+          <CardContent>
+            <Typography component="h2" variant="headline">Question</Typography>
+            <Typography component="p">You are given a choice between game A and game B. Winning either game will yield the same prize. Your chance of winning is represented in the bar plots below. Which game would you choose?</Typography>
+        <svg width = {svgDim.w} height = {svgDim.h}  >
+          {
+            [left,right].map((d,i)=>
+            <g key={`${d}_bar`}>
+              <Bar
                 h={dim.h}
                 w={dim.w}
                 color="RoyalBlue"
-                x={margin.x}
+                x={margin.x + i*1.5*dim.w}
                 y={margin.y}
-                label="test"
-                sd={sd}
-                chain={chains}
-                mu={mu}
+                label={i+""}
+                sd={d.sd}
+                chain={d.chain}
+                mu={d.mu}
                 dynamic={dynamic}
                 error={error}
                 t={150}
-              />
-          <g>
-            {
-              [...Array(11).keys()].map(d=>(
-                <g>
-                  <Tick
-                    x1={margin.x-35}
-                    x2={margin.x+dim.w}
-                    y1={tickScale(d)}
-                    y2={tickScale(d)}
-                  />
-                  <text
-                    x={margin.x-35}
-                    y={tickScale(d)}
-                    fontSize={10}
-                    >
-                    {d*10+"%"}
-                  </text>
-                </g>
-                ))
-            }
+            />
+            <Button
+              x={margin.x + i*1.5*dim.w}
+              y={dim.h+70}
+              width={dim.w}
+              height={20}
+              onClick={this.handleNext}
+            />
+          {/* <text
+              x={margin.x + i*1.5*dim.w+dim.w/2}
+              y={dim.h+70+12}
+              fontSize={12}
+              textAnchor="middle"
+              fill="white"
+              stroke="black"
+              strokeWidth="1"
+              >Select</text> */}
+
 
           </g>
-        </svg>
-        <form>
-          <label>
-            SD
-          </label>
-          <select
-            value={sd}
-            onChange={this.handleDropdown}
-            id="sd"
-            >
-            {sdOptions.map(({value,text})=>(
-              <option
-                value={value}
-                >
-                {text?text:value}
-              </option>
-            ))}
-          </select>
-          <label>mean</label>
-          <select
-            value={mu}
-            onChange={this.handleDropdown}
-            id="mu"
-            >
-            {muOptions.map(({value,text})=>(
-              <option
-                value={value}
-                >
-                {text?text:value}
-              </option>
-            ))}
-          </select>
-        </form>
 
-          {/* <DropdownMenu
-            on
-            selected={sd}
-            options={sdOptions}
-            title="sigma"
-          /> */}
+            )
+          }
+
+        <Axis
+          x1={margin.x-35}
+          x2={margin.x+2.5*dim.w}
+          yBottom = {dim.h+margin.y}
+          yTop = {margin.y}
+          tickNumber={4}
+        />
+
+
+        </svg>
+
+
+
+      </CardContent>
+
+
+        </Card>
 
 
       </div>

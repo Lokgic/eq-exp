@@ -2,18 +2,18 @@ import React,{Component} from 'react'
 import {interval} from 'd3-timer'
 import { easeSin as easeFn } from 'd3-ease';
 import Animate from 'react-move/Animate';
-import {axisRight} from 'd3-axis'
+
 
 export default class Bar extends Component{
 	constructor(props){
     super(props)
     const {h,w,color,x,y,label,error,sd,chain,dynamic,mu,t} = props
 
-    this.chain = chain
+
     // const currentMu = dynamic? chain[0]:mu;
     const step = 0;
     this.state = {
-      h,w,color,x,y,label,error,sd,mu:mu,step,dynamic,
+      h,w,color,x,y,label,error,sd,mu,step,dynamic,chain,
       visible:1,
       t
     };
@@ -25,18 +25,18 @@ export default class Bar extends Component{
 			this.t.stop()
 		}
 		const {h,w,color,x,y,label,error,sd,chain,dynamic,mu,t} = nextProps
-		this.chain = chain
+
 		// const currentMu = dynamic? chain[0]:mu;
 		const step = 0;
 		this.setState({
-			h,w,color,x,y,label,error,sd,mu,step,dynamic,
+			h,w,color,x,y,label,error,sd,mu,step,dynamic,chain,
 			visible:1,
 			t
 		});
 		if (dynamic){
       this.t = interval(()=>{
 
-        const nextStep = this.state.step >= this.chain.length? 0:this.state.step+1;
+        const nextStep = this.state.step >= chain.length - 1? 0:this.state.step+1;
 
         this.setState({step:nextStep});
       },this.state.t)
@@ -49,16 +49,16 @@ export default class Bar extends Component{
     if (this.state.dynamic){
       this.t = interval(()=>{
 
-        const nextStep = this.state.step >= this.chain.length? 0:this.state.step+1;
-				console.log(nextStep)
+        const nextStep = this.state.step >= this.state.chain.length? 0:this.state.step+1;
+
         this.setState({step:nextStep});
       },this.state.t)
     }
   }
 
   render(){
-    const {h,w,color,x,y,label,error,sd,mu,step,dynamic} = this.state;
-    const p = dynamic?this.chain[step]*h:mu*h;
+    const {h,w,color,x,y,label,error,sd,mu,step,dynamic,chain} = this.state;
+    const p = dynamic?chain[step]*h:mu*h;
     const sdLen =  sd*h*1.96
 		const eX = w/2
 		const ey1 = h - (mu*h + sdLen)
