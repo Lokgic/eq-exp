@@ -11,15 +11,20 @@ import Paper from 'material-ui/Paper';
 
 const styles = theme => ({
   root: {
+
     width: '100%',
     maxWidth: 360 ,
     backgroundColor: theme.palette.background.paper,
     textTransform:'capitalize',
   },
+  button: {
+   margin: theme.spacing.unit,
+ }
+
 });
 
 const  SimpleList = (props)=> {
-  const { classes,handleSettings} = props;
+  const { classes,handleSettings,handleMode,mode} = props;
   return (
     <Paper>
     <div className={classes.root}>
@@ -32,31 +37,39 @@ const  SimpleList = (props)=> {
             <MenuItem>
               <ListItemText primary={`Mean: ${props[d].mu}`} />
               <ListItemIcon>
-                <Button  variant="fab" color="primary" aria-label="mu-1-add" mini
-                  onClick={()=>handleSettings({dist:d,p:"mu",direction:"plus"})}
-                  ><PlusIcon/></Button>
-              </ListItemIcon>
-              <ListItemIcon>
                   <Button
                     onClick={()=>handleSettings({dist:d,p:"mu",direction:"minus"})}
                     variant="fab" color="secondary" aria-label="add" mini><MinusIcon/></Button>
+              </ListItemIcon>
+              <ListItemIcon>
+                <Button  variant="fab" color="primary" aria-label="mu-1-add" mini
+                  onClick={()=>handleSettings({dist:d,p:"mu",direction:"plus"})}
+                  ><PlusIcon/>
+                </Button>
               </ListItemIcon>
             </MenuItem>
             <MenuItem>
               <ListItemText primary={`Std.Dev: ${props[d].sd}`} />
               <ListItemIcon>
                   <Button
-
-                    onClick={()=>handleSettings({dist:d,p:"sd",direction:"plus"})}
-                    variant="fab" color="primary" aria-label="add" mini><PlusIcon/></Button>
-              </ListItemIcon>
-              <ListItemIcon>
-                  <Button
                     onClick={()=>handleSettings({dist:d,p:"sd",direction:"minus"})}
                     variant="fab" color="secondary" aria-label="add" mini><MinusIcon/></Button>
               </ListItemIcon>
+              <ListItemIcon>
+                  <Button
+                    onClick={()=>handleSettings({dist:d,p:"sd",direction:"plus"})}
+                    variant="fab" color="primary" aria-label="add" mini><PlusIcon/></Button>
+              </ListItemIcon>
             </MenuItem>
-
+            <MenuItem>
+              <ListItemText primary={`Speed: `} />
+              <ListItemIcon>
+                  <Button variant="fab" color="secondary" aria-label="add" mini><MinusIcon/></Button>
+              </ListItemIcon>
+              <ListItemIcon>
+                  <Button variant="fab" color="primary" aria-label="add" mini><PlusIcon/></Button>
+              </ListItemIcon>
+            </MenuItem>
           </MenuList>
 
         ))
@@ -64,15 +77,24 @@ const  SimpleList = (props)=> {
       <MenuList component="nav">
 
           <Divider />
-        <MenuItem>
-          <ListItemText primary={`Speed: `} />
-          <ListItemIcon>
-              <Button variant="fab" color="primary" aria-label="add" mini><PlusIcon/></Button>
-          </ListItemIcon>
-          <ListItemIcon>
-              <Button variant="fab" color="secondary" aria-label="add" mini><MinusIcon/></Button>
-          </ListItemIcon>
-        </MenuItem>
+
+      <ListItem>
+        {
+          ["mean","static","dynamic"].map(d=>(
+            <ListItemIcon>
+              <Button
+                onClick={()=>handleMode(d)}
+                 variant="raised"
+                 size="medium"
+                 color={mode===d?"primary":"secondary"}>
+                        {d}
+                      </Button>
+            </ListItemIcon>
+          ))
+        }
+
+
+      </ListItem>
 
       </MenuList>
 

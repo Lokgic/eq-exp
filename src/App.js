@@ -21,6 +21,13 @@ const options = {
 
 }
 
+const text = {
+  "mean": "You are given a choice between two games A and B. Winning either game will yield the same prize.Your estimated chance of winning is represented in the bar plots below. Which game would you play? You can pick A, B, or flip a coin.",
+  "static": "You are given a choice between two games A and B. Winning either game will yield the same prize. Your estimated chance of winning is represented in the bar plots below. There is some uncertainty around the exact chance of winning either game. This uncertainty is represented in the confidence intervals below. Which game would you play? You can pick A, B, or flip a coin.",
+  "dynamic": "You are given a choice between two games A and B. Winning either game will yield the same prize. Your estimated chance of winning is represented in the bar plots below. There is some uncertainty around the exact chance of winning either game. This uncertainty is represented in the movement of the bars. Which game would you play? You can pick A, B, or flip a coin."
+
+}
+
 const Button = styled.rect`
   fill:LightSteelBlue;
   stroke:grey;
@@ -41,26 +48,40 @@ class App extends Component {
     this.nextMode = this.nextMode.bind(this);
     this.getCol = this.getCol.bind(this);
     this.handleDropdown = this.handleDropdown.bind(this);
-    this.handleNext = this.handleNext.bind(this);
+    this.handleMode = this.handleMode.bind(this);
     this.randomNewParm = this.randomNewParm.bind(this);
     this.handleSettings = this.handleSettings.bind(this)
 
     this.state = {
       dynamic:false,
       error:false,
-      mode:0,
+      mode:"mean",
       ...this.randomNewParm()
     }
 
   }
-  handleNext(){
+  handleMode(m){
 
-    let next = this.nextMode();
-    // if (next.mode===0) next = {
-    //   ...next,
-    //   ...this.randomNewParm()
-    // }
-    this.setState(next);
+
+    const modes = {
+      mean:{
+        mode:"mean",
+        error:false,
+        dynamic:false,
+      },
+      static:{
+        mode:"static",
+        error:true,
+        dynamic:false,
+      },
+      dynamic:{
+        mode:"dynamic",
+        error:false,
+        dynamic:true,
+      }
+    };
+
+    this.setState(modes[m]);
   }
   handleDropdown(event){
     const val = event.target.id.split("_")
@@ -162,7 +183,7 @@ class App extends Component {
   }
 
   render() {
-    const {left,right,dynamic,error} = this.state
+    const {left,right,dynamic,error,mode} = this.state
     const margin = {y:30,x:150}
     const dim = {h:450,w:200}
     const svgDim = {h:600,w:800}
@@ -176,12 +197,14 @@ class App extends Component {
             left={{sd:left.sd,mu:left.mu}}
             right={{sd:right.sd,mu:right.mu}}
             handleSettings={this.handleSettings}
+            handleMode={this.handleMode}
+            mode={mode}
           />
         </div>
-        <Card style={{maxWidth:1000}}>
+        <Card style={{maxWidth:850}}>
           <CardContent>
-            <Typography component="h2" variant="headline">Question</Typography>
-            <Typography component="p">You are given a choice between game A and game B. Winning either game will yield the same prize. Your chance of winning is represented in the bar plots below. Which game would you choose?</Typography>
+            <Typography component="h2" variant="headline" gutterBottom>Question</Typography>
+            <Typography component="p" align="justify">{text[mode]}</Typography>
         <svg width = {svgDim.w} height = {svgDim.h}  >
           {
             [left,right].map((d,i)=>
@@ -200,13 +223,13 @@ class App extends Component {
                 error={error}
                 t={150}
             />
-            <Button
+            {/* <Button
               x={margin.x + i*1.5*dim.w}
               y={dim.h+70}
               width={dim.w}
               height={20}
               onClick={this.handleNext}
-            />
+            /> */}
           {/* <text
               x={margin.x + i*1.5*dim.w+dim.w/2}
               y={dim.h+70+12}
